@@ -142,7 +142,7 @@
 										"type": "Expression"
 									},
 									"logMessage": {
-										"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',activity('landing tobronze').output.bronze_tbl)",
+										"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
 										"type": "Expression"
 									},
 									"logTimeStamp": {
@@ -172,7 +172,7 @@
 				}
 			},
 			{
-				"name": "copy failure  for bronze  layer ingestion",
+				"name": "failure  for bronze  layer ingestion",
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
