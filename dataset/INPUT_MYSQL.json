@@ -1,0 +1,43 @@
+{
+	"name": "INPUT_MYSQL",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "dev_mysql_ls",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"server_name": "LOCALHOST",
+				"port": {
+					"value": "@dataset().port",
+					"type": "Expression"
+				},
+				"database_name": "DEMO",
+				"username": {
+					"value": "@dataset().username",
+					"type": "Expression"
+				},
+				"secret_name": "LOLMENOOB12"
+			}
+		},
+		"parameters": {
+			"servername": {
+				"type": "String"
+			},
+			"port": {
+				"type": "String"
+			},
+			"databasename": {
+				"type": "String"
+			},
+			"username": {
+				"type": "String"
+			},
+			"password": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "MySqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

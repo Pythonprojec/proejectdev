@@ -1,0 +1,370 @@
+{
+	"name": "mysqltoraw ingestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureDatabricksDeltaLakeSource",
+						"query": {
+							"value": "@concat('select control.source_ref_id, control.server_name, control.port, control.database_name, control.user_name, control.secret_name, control.storage_account, control.adls_url, control.container_name, control.logic_app_url, control.email_id, param.source_file_or_table_name, param.adls_file_path, param.bronze_schema, param.bronze_tbl, param.silver_schema, param.silver_tbl, param.gold_schema, param.gold_tbl from ',pipeline().parameters.meta_database,'.tbl_source_control as control join ',pipeline().parameters.meta_database,'.tbl_parameters as param on control.job_id = param.job_id where param.job_id = ',pipeline().parameters.job_id)",
+							"type": "Expression"
+						}
+					},
+					"dataset": {
+						"referenceName": "getparameter_delta",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_metadata').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "MySqlSource",
+									"query": {
+										"value": "@concat('select * from ',item().source_file_or_table_name)",
+										"type": "Expression"
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "INPUT_MYSQL",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().server_name",
+											"type": "Expression"
+										},
+										"port": {
+											"value": "@item().port",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().database_name",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().user_name",
+											"type": "Expression"
+										},
+										"password": {
+											"value": "@item().secret_name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "output_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"container_name": {
+											"value": "@item().container_name",
+											"type": "Expression"
+										},
+										"adls_file_path": {
+											"value": "@item().adls_file_path",
+											"type": "Expression"
+										},
+										"table_name": {
+											"value": "@item().source_file_or_table_name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "copy suceess log",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Copy data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+								"baseParameters": {
+									"env": {
+										"value": "@pipeline().globalParameters.env",
+										"type": "Expression"
+									},
+									"loadId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"logMessage": {
+										"value": "@concat('copied',item().source_file_or_table_name,'table copied to adls landing container')",
+										"type": "Expression"
+									},
+									"logTimeStamp": {
+										"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+										"type": "Expression"
+									},
+									"pipeLineName": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"status": {
+										"value": "'sucess'",
+										"type": "Expression"
+									},
+									"triggerType": {
+										"value": "@pipeline().TriggerType",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_azure_databricks",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "copy failure",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Copy data",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+								"baseParameters": {
+									"env": {
+										"value": "@pipeline().globalParameters.env",
+										"type": "Expression"
+									},
+									"loadId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"logMessage": {
+										"value": "@concat('failed',item().source_file_or_table_name,'table copy failed to adls landing container')",
+										"type": "Expression"
+									},
+									"logTimeStamp": {
+										"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+										"type": "Expression"
+									},
+									"pipeLineName": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"status": {
+										"value": "@concat('error',activity('Copy data').output.error.message)",
+										"type": "Expression"
+									},
+									"triggerType": {
+										"value": "@pipeline().TriggerId",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_azure_databricks",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "ifrecords",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Copy data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(activity('Copy data').output.rowsread,activity('Copy data').output.rowscopied)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "unmatched records log",
+										"type": "DatabricksNotebook",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+											"baseParameters": {
+												"env": {
+													"value": "@pipeline().globalParameters.env",
+													"type": "Expression"
+												},
+												"loadid": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"logMessage": {
+													"value": "\n\n@concat(string(sub(int(activity('Copy data').output.rowsread),int(activity('Copy data').output.rowscopied))),item().source_file_or_table_name,'the difference in records from tables')",
+													"type": "Expression"
+												},
+												"logTimeStamp": {
+													"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+													"type": "Expression"
+												},
+												"pipeLineName": {
+													"value": "@pipeline().Pipeline",
+													"type": "Expression"
+												},
+												"status": {
+													"value": "@concat('error',activity('Copy data').output.error.message)",
+													"type": "Expression"
+												},
+												"TriggerType": {
+													"value": "@pipeline().TriggerId",
+													"type": "Expression"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "ls_azure_databricks",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Execute raw to bronze",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "ifrecords",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "mysqllandingrtobron",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"getmetadata_values": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "String",
+				"defaultValue": "102"
+			},
+			"meta_database": {
+				"type": "String",
+				"defaultValue": "metadata_schema"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-03-21T16:04:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

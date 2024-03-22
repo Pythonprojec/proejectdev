@@ -1,0 +1,17 @@
+{
+	"name": "CS-DATAFACTORY-DEV",
+	"properties": {
+		"globalParameters": {
+			"env": {
+				"type": "string",
+				"value": "dev"
+			}
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "619a6bf2-4b94-4b17-98e4-fd63054f5ae3",
+		"tenantId": "42ea3d44-e2af-475e-8222-65551624c9e7"
+	}
+}

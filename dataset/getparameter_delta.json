@@ -1,0 +1,17 @@
+{
+	"name": "getparameter_delta",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_databricks_delta",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "metadata_schema",
+			"table": "tbl_parameters"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

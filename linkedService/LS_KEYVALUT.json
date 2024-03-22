@@ -1,0 +1,11 @@
+{
+	"name": "LS_KEYVALUT",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://CS-KEYVALUT.vault.azure.net/"
+		}
+	}
+}

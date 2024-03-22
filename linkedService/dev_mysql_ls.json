@@ -1,0 +1,44 @@
+{
+	"name": "dev_mysql_ls",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "string",
+				"defaultValue": "LOCALHOST"
+			},
+			"port": {
+				"type": "string",
+				"defaultValue": "3306"
+			},
+			"database_name": {
+				"type": "string",
+				"defaultValue": "DEMO"
+			},
+			"username": {
+				"type": "string",
+				"defaultValue": "ROOT"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "LOLMENOOB12"
+			}
+		},
+		"annotations": [],
+		"type": "MySql",
+		"typeProperties": {
+			"server": "localhost",
+			"port": 3306,
+			"database": "demo",
+			"username": "root",
+			"sslMode": 1,
+			"useSystemTrustStore": 0,
+			"driverVersion": "v2",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1ODQwMzM0MC0zM2E3LTQ3NjEtOGM1Yy04MjU0YmM4MjNjNmIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "cs-dev-intergration",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

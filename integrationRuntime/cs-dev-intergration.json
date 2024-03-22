@@ -1,0 +1,6 @@
+{
+	"name": "cs-dev-intergration",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

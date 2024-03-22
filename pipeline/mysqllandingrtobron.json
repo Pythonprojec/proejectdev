@@ -1,0 +1,80 @@
+{
+	"name": "mysqllandingrtobron",
+	"properties": {
+		"activities": [
+			{
+				"name": "landing tobronze",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/bronze to silver ingestion",
+					"baseParameters": {
+						"LoadID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"bronze_schema": {
+							"value": "@pipeline().parameters.getmetadata_values.brone_schema",
+							"type": "Expression"
+						},
+						"bronze_table": {
+							"value": "@pipeline().parameters.getmetadata_values.bronze_table",
+							"type": "Expression"
+						},
+						" env": {
+							"value": "@pipeline().globalParameters.env",
+							"type": "Expression"
+						},
+						"source_file_name": {
+							"value": "@pipeline().parameters.getmetadata_values.source_file_name",
+							"type": "Expression"
+						},
+						"storage_account_name": {
+							"value": "@pipeline().parameters.getmetadata_values.storage_account_name",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_azure_databricks",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "compare record counts",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "landing tobronze",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[2])",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"getmetadata_values": {
+				"type": "object"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-03-21T16:23:10Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
