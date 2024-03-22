@@ -22,7 +22,7 @@
 							"type": "Expression"
 						},
 						"bronze_schema": {
-							"value": "@pipeline().parameters.getmetadata_values.brone_schema",
+							"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
 							"type": "Expression"
 						},
 						"bronze_table": {
