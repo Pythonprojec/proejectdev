@@ -62,7 +62,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[2])",
+						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[1])",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
