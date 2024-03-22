@@ -25,7 +25,7 @@
 							"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
 							"type": "Expression"
 						},
-						"bronze_tbl": {
+						"bronze_table": {
 							"value": "@pipeline().parameters.getmetadata_values.bronze_tbl",
 							"type": "Expression"
 						},
@@ -33,12 +33,12 @@
 							"value": "@pipeline().globalParameters.env",
 							"type": "Expression"
 						},
-						"source_file_or_table": {
+						"source_file_name": {
 							"value": "@pipeline().parameters.getmetadata_values.source_file_or_table",
 							"type": "Expression"
 						},
 						"storage_account_name": {
-							"value": "@pipeline().parameters.getmetadata_values.storage_account_name",
+							"value": "@pipeline().parameters.getmetadata_values.storage_account",
 							"type": "Expression"
 						}
 					}
