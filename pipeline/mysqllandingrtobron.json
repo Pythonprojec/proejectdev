@@ -15,7 +15,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/bronze to silver ingestion",
+					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
 					"baseParameters": {
 						"LoadID": {
 							"value": "@pipeline().RunId",
