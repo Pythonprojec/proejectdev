@@ -4,7 +4,7 @@
 		"globalParameters": {
 			"env": {
 				"type": "string",
-				"value": "devv"
+				"value": "dev"
 			}
 		}
 	},
