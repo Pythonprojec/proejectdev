@@ -214,7 +214,7 @@
 							"type": "Expression"
 						},
 						"status": {
-							"value": "@concat('error:',activity('landing tobronze').output.error.message)",
+							"value": "@concat(activity('landing tobronze').output.error.message)",
 							"type": "Expression"
 						},
 						"triggerType": {
