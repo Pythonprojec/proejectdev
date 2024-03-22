@@ -33,8 +33,8 @@
 							"value": "@pipeline().globalParameters.env",
 							"type": "Expression"
 						},
-						"source_file_name": {
-							"value": "@pipeline().parameters.getmetadata_values.source_file_name",
+						"source_file_or_table": {
+							"value": "@pipeline().parameters.getmetadata_values.source_file_or_table",
 							"type": "Expression"
 						},
 						"storage_account_name": {
