@@ -1,0 +1,48 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "CS-DATAFACTORY-DEV"
+		},
+		"Sftp1_password": {
+			"value": ""
+		},
+		"dev_mysql_ls_password": {
+			"value": ""
+		},
+		"ls_aure_datalakestorage_accountKey": {
+			"value": ""
+		},
+		"ls_azure_databricks_accessToken": {
+			"value": ""
+		},
+		"sftpoutput_connectionString": {
+			"value": ""
+		},
+		"LS_KEYVALUT_properties_typeProperties_baseUrl": {
+			"value": "https://CS-KEYVALUT.vault.azure.net/"
+		},
+		"Sftp1_properties_typeProperties_host": {
+			"value": "192.168.2.187"
+		},
+		"Sftp1_properties_typeProperties_userName": {
+			"value": "Zub"
+		},
+		"dev_mysql_ls_properties_typeProperties_server": {
+			"value": "localhost"
+		},
+		"dev_mysql_ls_properties_typeProperties_database": {
+			"value": "demo"
+		},
+		"dev_mysql_ls_properties_typeProperties_username": {
+			"value": "root"
+		},
+		"ls_aure_datalakestorage_properties_typeProperties_url": {
+			"value": "https://csadlsgen2storagedev1.dfs.core.windows.net/"
+		},
+		"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+			"value": "0318-155242-fql75zwl"
+		}
+	}
+}

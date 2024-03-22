@@ -1,0 +1,834 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "CS-DATAFACTORY-DEV"
+		},
+		"sftpoutput_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'sftpoutput'"
+		},
+		"Sftp1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Sftp1'"
+		},
+		"dev_mysql_ls_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'dev_mysql_ls'"
+		},
+		"ls_aure_datalakestorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_aure_datalakestorage'"
+		},
+		"ls_azure_databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_azure_databricks'"
+		},
+		"LS_KEYVALUT_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://CS-KEYVALUT.vault.azure.net/"
+		},
+		"Sftp1_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "192.168.2.187"
+		},
+		"Sftp1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "Zub"
+		},
+		"dev_mysql_ls_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost"
+		},
+		"dev_mysql_ls_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "demo"
+		},
+		"dev_mysql_ls_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "root"
+		},
+		"ls_aure_datalakestorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://csadlsgen2storagedev1.dfs.core.windows.net/"
+		},
+		"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0318-155242-fql75zwl"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_KEYVALUT')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LS_KEYVALUT_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sftpoutput')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('sftpoutput_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/cs-dev-intergration')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sftp1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Sftp",
+				"typeProperties": {
+					"host": "[parameters('Sftp1_properties_typeProperties_host')]",
+					"port": 22,
+					"skipHostKeyValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('Sftp1_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('Sftp1_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "cs-dev-intergration",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/cs-dev-intergration')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dev_mysql_ls')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"server_name": {
+						"type": "string",
+						"defaultValue": "LOCALHOST"
+					},
+					"port": {
+						"type": "string",
+						"defaultValue": "3306"
+					},
+					"database_name": {
+						"type": "string",
+						"defaultValue": "DEMO"
+					},
+					"username": {
+						"type": "string",
+						"defaultValue": "ROOT"
+					},
+					"secret_name": {
+						"type": "string",
+						"defaultValue": "LOLMENOOB12"
+					}
+				},
+				"annotations": [],
+				"type": "MySql",
+				"typeProperties": {
+					"server": "[parameters('dev_mysql_ls_properties_typeProperties_server')]",
+					"port": 3306,
+					"database": "[parameters('dev_mysql_ls_properties_typeProperties_database')]",
+					"username": "[parameters('dev_mysql_ls_properties_typeProperties_username')]",
+					"sslMode": 1,
+					"useSystemTrustStore": 0,
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('dev_mysql_ls_password')]"
+					},
+					"driverVersion": "v2"
+				},
+				"connectVia": {
+					"referenceName": "cs-dev-intergration",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/cs-dev-intergration')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_aure_datalakestorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_aure_datalakestorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_aure_datalakestorage_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "cs-dev-intergration",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/cs-dev-intergration')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-8141753082300297.17.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('ls_azure_databricks_accessToken')]"
+					},
+					"existingClusterId": "[parameters('ls_azure_databricks_properties_typeProperties_existingClusterId')]"
+				},
+				"connectVia": {
+					"referenceName": "cs-dev-intergration",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/cs-dev-intergration')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_databricks_delta')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLake",
+				"typeProperties": {
+					"domain": "https://adb-8141753082300297.17.azuredatabricks.net",
+					"clusterId": "0318-155242-fql75zwl",
+					"workspaceResourceId": "/subscriptions/0f22a380-bb79-4cc1-a12c-62c87aadebbd/resourceGroups/cs-dev-envirolment/providers/Microsoft.Databricks/workspaces/CS-AZUREDATABRICKS-DEV"
+				},
+				"connectVia": {
+					"referenceName": "cs-dev-intergration",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/cs-dev-intergration')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/mysqllandingrtobron')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "landing tobronze",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/bronze to silver ingestion",
+							"baseParameters": {
+								"LoadID": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"bronze_schema": {
+									"value": "@pipeline().parameters.getmetadata_values.brone_schema",
+									"type": "Expression"
+								},
+								"bronze_table": {
+									"value": "@pipeline().parameters.getmetadata_values.bronze_table",
+									"type": "Expression"
+								},
+								" env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"source_file_name": {
+									"value": "@pipeline().parameters.getmetadata_values.source_file_name",
+									"type": "Expression"
+								},
+								"storage_account_name": {
+									"value": "@pipeline().parameters.getmetadata_values.storage_account_name",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "compare record counts",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "landing tobronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[2])",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"getmetadata_values": {
+						"type": "object"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-03-21T16:23:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_databricks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/INPUT_MYSQL')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "dev_mysql_ls",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "LOCALHOST",
+						"port": {
+							"value": "@dataset().port",
+							"type": "Expression"
+						},
+						"database_name": "DEMO",
+						"username": {
+							"value": "@dataset().username",
+							"type": "Expression"
+						},
+						"secret_name": "LOLMENOOB12"
+					}
+				},
+				"parameters": {
+					"servername": {
+						"type": "String"
+					},
+					"port": {
+						"type": "String"
+					},
+					"databasename": {
+						"type": "String"
+					},
+					"username": {
+						"type": "String"
+					},
+					"password": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "MySqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/dev_mysql_ls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/getparameter_delta')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_delta",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLakeDataset",
+				"typeProperties": {
+					"database": "metadata_schema",
+					"table": "tbl_parameters"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_delta')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/output_parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_aure_datalakestorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container_name": {
+						"type": "String"
+					},
+					"adls_file_path": {
+						"type": "String"
+					},
+					"table_name": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().table_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().adls_file_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_aure_datalakestorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/mysqltoraw ingestion')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_metadata",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureDatabricksDeltaLakeSource",
+								"query": {
+									"value": "@concat('select control.source_ref_id, control.server_name, control.port, control.database_name, control.user_name, control.secret_name, control.storage_account, control.adls_url, control.container_name, control.logic_app_url, control.email_id, param.source_file_or_table_name, param.adls_file_path, param.bronze_schema, param.bronze_tbl, param.silver_schema, param.silver_tbl, param.gold_schema, param.gold_tbl from ',pipeline().parameters.meta_database,'.tbl_source_control as control join ',pipeline().parameters.meta_database,'.tbl_parameters as param on control.job_id = param.job_id where param.job_id = ',pipeline().parameters.job_id)",
+									"type": "Expression"
+								}
+							},
+							"dataset": {
+								"referenceName": "getparameter_delta",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_metadata').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "MySqlSource",
+											"query": {
+												"value": "@concat('select * from ',item().source_file_or_table_name)",
+												"type": "Expression"
+											}
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "INPUT_MYSQL",
+											"type": "DatasetReference",
+											"parameters": {
+												"servername": {
+													"value": "@item().server_name",
+													"type": "Expression"
+												},
+												"port": {
+													"value": "@item().port",
+													"type": "Expression"
+												},
+												"databasename": {
+													"value": "@item().database_name",
+													"type": "Expression"
+												},
+												"username": {
+													"value": "@item().user_name",
+													"type": "Expression"
+												},
+												"password": {
+													"value": "@item().secret_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "output_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"container_name": {
+													"value": "@item().container_name",
+													"type": "Expression"
+												},
+												"adls_file_path": {
+													"value": "@item().adls_file_path",
+													"type": "Expression"
+												},
+												"table_name": {
+													"value": "@item().source_file_or_table_name",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "copy suceess log",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Copy data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadId": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('copied',item().source_file_or_table_name,'table copied to adls landing container')",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "'sucess'",
+												"type": "Expression"
+											},
+											"triggerType": {
+												"value": "@pipeline().TriggerType",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "copy failure",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Copy data",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadId": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('failed',item().source_file_or_table_name,'table copy failed to adls landing container')",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "@concat('error',activity('Copy data').output.error.message)",
+												"type": "Expression"
+											},
+											"triggerType": {
+												"value": "@pipeline().TriggerId",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ifrecords",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Copy data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(activity('Copy data').output.rowsread,activity('Copy data').output.rowscopied)",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "unmatched records log",
+												"type": "DatabricksNotebook",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+													"baseParameters": {
+														"env": {
+															"value": "@pipeline().globalParameters.env",
+															"type": "Expression"
+														},
+														"loadid": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														},
+														"logMessage": {
+															"value": "\n\n@concat(string(sub(int(activity('Copy data').output.rowsread),int(activity('Copy data').output.rowscopied))),item().source_file_or_table_name,'the difference in records from tables')",
+															"type": "Expression"
+														},
+														"logTimeStamp": {
+															"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+															"type": "Expression"
+														},
+														"pipeLineName": {
+															"value": "@pipeline().Pipeline",
+															"type": "Expression"
+														},
+														"status": {
+															"value": "@concat('error',activity('Copy data').output.error.message)",
+															"type": "Expression"
+														},
+														"TriggerType": {
+															"value": "@pipeline().TriggerId",
+															"type": "Expression"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "ls_azure_databricks",
+													"type": "LinkedServiceReference"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "Execute raw to bronze",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "ifrecords",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "mysqllandingrtobron",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"getmetadata_values": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"job_id": {
+						"type": "String",
+						"defaultValue": "102"
+					},
+					"meta_database": {
+						"type": "String",
+						"defaultValue": "metadata_schema"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-03-21T16:04:02Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/getparameter_delta')]",
+				"[concat(variables('factoryId'), '/datasets/INPUT_MYSQL')]",
+				"[concat(variables('factoryId'), '/datasets/output_parquet')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_databricks')]",
+				"[concat(variables('factoryId'), '/pipelines/mysqllandingrtobron')]"
+			]
+		}
+	]
+}

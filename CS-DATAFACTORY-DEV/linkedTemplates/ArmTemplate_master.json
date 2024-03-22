@@ -1,0 +1,133 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "CS-DATAFACTORY-DEV"
+		},
+		"Sftp1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Sftp1'"
+		},
+		"dev_mysql_ls_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'dev_mysql_ls'"
+		},
+		"ls_aure_datalakestorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_aure_datalakestorage'"
+		},
+		"ls_azure_databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_azure_databricks'"
+		},
+		"sftpoutput_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'sftpoutput'"
+		},
+		"LS_KEYVALUT_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://CS-KEYVALUT.vault.azure.net/"
+		},
+		"Sftp1_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "192.168.2.187"
+		},
+		"Sftp1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "Zub"
+		},
+		"dev_mysql_ls_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "localhost"
+		},
+		"dev_mysql_ls_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "demo"
+		},
+		"dev_mysql_ls_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "root"
+		},
+		"ls_aure_datalakestorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://csadlsgen2storagedev1.dfs.core.windows.net/"
+		},
+		"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0318-155242-fql75zwl"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "CS-DATAFACTORY-DEV_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"sftpoutput_connectionString": {
+						"value": "[parameters('sftpoutput_connectionString')]"
+					},
+					"Sftp1_password": {
+						"value": "[parameters('Sftp1_password')]"
+					},
+					"dev_mysql_ls_password": {
+						"value": "[parameters('dev_mysql_ls_password')]"
+					},
+					"ls_aure_datalakestorage_accountKey": {
+						"value": "[parameters('ls_aure_datalakestorage_accountKey')]"
+					},
+					"ls_azure_databricks_accessToken": {
+						"value": "[parameters('ls_azure_databricks_accessToken')]"
+					},
+					"LS_KEYVALUT_properties_typeProperties_baseUrl": {
+						"value": "[parameters('LS_KEYVALUT_properties_typeProperties_baseUrl')]"
+					},
+					"Sftp1_properties_typeProperties_host": {
+						"value": "[parameters('Sftp1_properties_typeProperties_host')]"
+					},
+					"Sftp1_properties_typeProperties_userName": {
+						"value": "[parameters('Sftp1_properties_typeProperties_userName')]"
+					},
+					"dev_mysql_ls_properties_typeProperties_server": {
+						"value": "[parameters('dev_mysql_ls_properties_typeProperties_server')]"
+					},
+					"dev_mysql_ls_properties_typeProperties_database": {
+						"value": "[parameters('dev_mysql_ls_properties_typeProperties_database')]"
+					},
+					"dev_mysql_ls_properties_typeProperties_username": {
+						"value": "[parameters('dev_mysql_ls_properties_typeProperties_username')]"
+					},
+					"ls_aure_datalakestorage_properties_typeProperties_url": {
+						"value": "[parameters('ls_aure_datalakestorage_properties_typeProperties_url')]"
+					},
+					"ls_azure_databricks_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('ls_azure_databricks_properties_typeProperties_existingClusterId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
