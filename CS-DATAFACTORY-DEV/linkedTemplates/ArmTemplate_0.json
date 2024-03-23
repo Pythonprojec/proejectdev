@@ -247,6 +247,181 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/bronzetosilveringestion')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "bronze to silver",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
+							"baseParameters": {
+								"LoadID": {
+									"value": "@pipeline()?.TriggeredByPipelineRunId",
+									"type": "Expression"
+								},
+								"bronze_schema": {
+									"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
+									"type": "Expression"
+								},
+								"bronze_table": {
+									"value": "@pipeline().parameters.getmetadata_values.bronze_tbl",
+									"type": "Expression"
+								},
+								"silver_schema": {
+									"value": "@pipeline().parameters.getmetadata_values.siler_schema",
+									"type": "Expression"
+								},
+								"silver_table": {
+									"value": "@pipeline().parameters.getmetadata_values.silver_table",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "failure  for silver  layer ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze to silver",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+							"baseParameters": {
+								"env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"loadId": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"logMessage": {
+									"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.bronze_tbl,'to silver table',pipeline().parameters.getmetadata_values.silver_tbl)",
+									"type": "Expression"
+								},
+								"logTimeStamp": {
+									"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+									"type": "Expression"
+								},
+								"pipeLineName": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								},
+								"status": {
+									"value": "@concat(activity('bronze to silver').output.error.message)",
+									"type": "Expression"
+								},
+								"triggerType": {
+									"value": "@pipeline().TriggerId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sucess silver layer ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze to silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+							"baseParameters": {
+								"env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"loadId": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"logMessage": {
+									"value": "@concat(' inserted',activity('bronze to silver').output.runOutput[1],activity('bronze to silver').output.runOutput[0],'deupicated removed''in the silver  layer table ',pipeline().parameters.getmetadata_values.silver_tbl)",
+									"type": "Expression"
+								},
+								"logTimeStamp": {
+									"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+									"type": "Expression"
+								},
+								"pipeLineName": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								},
+								"status": "sucess",
+								"triggerType": {
+									"value": "@pipeline().TriggerId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"getmetadata_values": {
+						"type": "object"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-03-21T16:23:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_databricks')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/mysqllandingrtobron')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -265,18 +440,18 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/bronze to silver ingestion",
+							"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
 							"baseParameters": {
 								"LoadID": {
 									"value": "@pipeline().RunId",
 									"type": "Expression"
 								},
 								"bronze_schema": {
-									"value": "@pipeline().parameters.getmetadata_values.brone_schema",
+									"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
 									"type": "Expression"
 								},
 								"bronze_table": {
-									"value": "@pipeline().parameters.getmetadata_values.bronze_table",
+									"value": "@pipeline().parameters.getmetadata_values.bronze_tbl",
 									"type": "Expression"
 								},
 								" env": {
@@ -284,11 +459,11 @@
 									"type": "Expression"
 								},
 								"source_file_name": {
-									"value": "@pipeline().parameters.getmetadata_values.source_file_name",
+									"value": "@pipeline().parameters.getmetadata_values.source_file_or_table_name",
 									"type": "Expression"
 								},
 								"storage_account_name": {
-									"value": "@pipeline().parameters.getmetadata_values.storage_account_name",
+									"value": "@pipeline().parameters.getmetadata_values.storage_account",
 									"type": "Expression"
 								}
 							}
@@ -312,9 +487,349 @@
 						"userProperties": [],
 						"typeProperties": {
 							"expression": {
-								"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[2])",
+								"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[1])",
 								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "unmatched records raw and bronze",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadid": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('there are records mismatch in source',activity('landing tobronze').output.source_file_or_table_name,'and landing',activity('landing tobronze').output.bronze_tbl)",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "sucess",
+												"type": "Expression"
+											},
+											"TriggerType": {
+												"value": "@pipeline().TriggerId",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "IF RECORDS MATCHED",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadid": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "sucess",
+												"type": "Expression"
+											},
+											"TriggerType": {
+												"value": "@pipeline().TriggerId",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "failure  for bronze  layer ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "landing tobronze",
+								"dependencyConditions": [
+									"Failed"
+								]
 							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+							"baseParameters": {
+								"env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"loadId": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"logMessage": {
+									"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.source_file_or_table_name,'to bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
+									"type": "Expression"
+								},
+								"logTimeStamp": {
+									"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+									"type": "Expression"
+								},
+								"pipeLineName": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								},
+								"status": {
+									"value": "@concat(activity('landing tobronze').output.error.message)",
+									"type": "Expression"
+								},
+								"triggerType": {
+									"value": "@pipeline().TriggerId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"getmetadata_values": {
+						"type": "object"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-03-21T16:23:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_databricks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/silver to gold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "silver to gold ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
+							"baseParameters": {
+								"LoadID": {
+									"value": "@pipeline()?.TriggeredByPipelineRunId",
+									"type": "Expression"
+								},
+								"gold_schema": {
+									"value": "@pipeline().parameters.getmetadata_values.gold_schema",
+									"type": "Expression"
+								},
+								"gold_table": {
+									"value": "@pipeline().parameters.getmetadata_values.gold_tbl",
+									"type": "Expression"
+								},
+								"silver_schema": {
+									"value": "@pipeline().parameters.getmetadata_values.silver_schema",
+									"type": "Expression"
+								},
+								"silver_table": {
+									"value": "@pipeline().parameters.getmetadata_values.silver_tbl",
+									"type": "Expression"
+								},
+								"source": {
+									"value": "@pipeline().parameters.getmetadata_values.source_ref_id",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "failure  for silver  layer ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver to gold ingestion",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+							"baseParameters": {
+								"env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"loadId": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"logMessage": {
+									"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.bronze_tbl,'to gold table',pipeline().parameters.getmetadata_values.gold_tbl)",
+									"type": "Expression"
+								},
+								"logTimeStamp": {
+									"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+									"type": "Expression"
+								},
+								"pipeLineName": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								},
+								"status": {
+									"value": "@concat(activity('silver to gold ingestion').output.error.message)",
+									"type": "Expression"
+								},
+								"triggerType": {
+									"value": "@pipeline().TriggerId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "sucess gold layer ingestion",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver to gold ingestion",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+							"baseParameters": {
+								"env": {
+									"value": "@pipeline().globalParameters.env",
+									"type": "Expression"
+								},
+								"loadId": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								},
+								"logMessage": {
+									"value": "@concat(' inserted',activity('silver to gold ingestion').output.runOutput[0], 'into gold layer',pipeline().parameters.getmetadata_values.gold_tbl)",
+									"type": "Expression"
+								},
+								"logTimeStamp": {
+									"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+									"type": "Expression"
+								},
+								"pipeLineName": {
+									"value": "@pipeline().Pipeline",
+									"type": "Expression"
+								},
+								"status": "sucess",
+								"triggerType": {
+									"value": "@pipeline().TriggerId",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_databricks",
+							"type": "LinkedServiceReference"
 						}
 					}
 				],
@@ -499,6 +1014,7 @@
 								"value": "@activity('Lookup_metadata').output.value",
 								"type": "Expression"
 							},
+							"isSequential": true,
 							"activities": [
 								{
 									"name": "Copy data",
@@ -801,6 +1317,209 @@
 											}
 										}
 									}
+								},
+								{
+									"name": "archive source",
+									"type": "DatabricksNotebook",
+									"dependsOn": [
+										{
+											"activity": "Execute raw to bronze",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/archive_source_files",
+										"baseParameters": {
+											"LoadID": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"source_file_name": {
+												"value": "@item().source_file_or_table_name",
+												"type": "Expression"
+											},
+											"storage_account_name": {
+												"value": "@item().storage_account",
+												"type": "Expression"
+											},
+											"file_path": {
+												"value": "@item().adls_file_path",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "archive_sucess_log",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadId": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('archive source file',item().source_file_or_table_name,'are archived from bronnze layer ')",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "'sucess'",
+												"type": "Expression"
+											},
+											"triggerType": {
+												"value": "@pipeline().TriggerType",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "archive failure",
+									"type": "DatabricksNotebook",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"notebookPath": "/Shared/log_table/log_record_tbl_insert",
+										"baseParameters": {
+											"env": {
+												"value": "@pipeline().globalParameters.env",
+												"type": "Expression"
+											},
+											"loadId": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"logMessage": {
+												"value": "@concat('failed to archive',activity('archive source ').output.error.message)",
+												"type": "Expression"
+											},
+											"logTimeStamp": {
+												"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
+												"type": "Expression"
+											},
+											"pipeLineName": {
+												"value": "@pipeline().Pipeline",
+												"type": "Expression"
+											},
+											"status": {
+												"value": "'sucess'",
+												"type": "Expression"
+											},
+											"triggerType": {
+												"value": "@pipeline().TriggerType",
+												"type": "Expression"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "ls_azure_databricks",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "landing to broze",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Execute raw to bronze",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "mysqllandingrtobron",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"getmetadata_values": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "trigger silver to gold",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "landing to broze",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "silver to gold",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"getmetadata_values": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
 								}
 							]
 						}
@@ -827,7 +1546,8 @@
 				"[concat(variables('factoryId'), '/datasets/INPUT_MYSQL')]",
 				"[concat(variables('factoryId'), '/datasets/output_parquet')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_azure_databricks')]",
-				"[concat(variables('factoryId'), '/pipelines/mysqllandingrtobron')]"
+				"[concat(variables('factoryId'), '/pipelines/mysqllandingrtobron')]",
+				"[concat(variables('factoryId'), '/pipelines/silver to gold')]"
 			]
 		}
 	]
