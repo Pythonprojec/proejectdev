@@ -18,7 +18,7 @@
 					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
 					"baseParameters": {
 						"LoadID": {
-							"value": "@pipeline().RunId",
+							"value": "@pipeline()?.TriggeredByPipelineRunId",
 							"type": "Expression"
 						},
 						"bronze_schema": {
@@ -42,129 +42,6 @@
 				"linkedServiceName": {
 					"referenceName": "ls_azure_databricks",
 					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "compare record counts",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "bronze to silver",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[1])",
-						"type": "Expression"
-					},
-					"ifFalseActivities": [
-						{
-							"name": "unmatched records raw and bronze",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": "/Shared/log_table/log_record_tbl_insert",
-								"baseParameters": {
-									"env": {
-										"value": "@pipeline().globalParameters.env",
-										"type": "Expression"
-									},
-									"loadid": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"logMessage": {
-										"value": "@concat('there are records mismatch in source',activity('landing tobronze').output.source_file_or_table_name,'and landing',activity('landing tobronze').output.bronze_tbl)",
-										"type": "Expression"
-									},
-									"logTimeStamp": {
-										"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
-										"type": "Expression"
-									},
-									"pipeLineName": {
-										"value": "@pipeline().Pipeline",
-										"type": "Expression"
-									},
-									"status": {
-										"value": "sucess",
-										"type": "Expression"
-									},
-									"TriggerType": {
-										"value": "@pipeline().TriggerId",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "ls_azure_databricks",
-								"type": "LinkedServiceReference"
-							}
-						}
-					],
-					"ifTrueActivities": [
-						{
-							"name": "IF RECORDS MATCHED",
-							"type": "DatabricksNotebook",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"notebookPath": "/Shared/log_table/log_record_tbl_insert",
-								"baseParameters": {
-									"env": {
-										"value": "@pipeline().globalParameters.env",
-										"type": "Expression"
-									},
-									"loadid": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"logMessage": {
-										"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
-										"type": "Expression"
-									},
-									"logTimeStamp": {
-										"value": "@formatDateTime(convertFromUtc(utcNow(),'eastern standard time'),'yyyy-MM-dd')",
-										"type": "Expression"
-									},
-									"pipeLineName": {
-										"value": "@pipeline().Pipeline",
-										"type": "Expression"
-									},
-									"status": {
-										"value": "sucess",
-										"type": "Expression"
-									},
-									"TriggerType": {
-										"value": "@pipeline().TriggerId",
-										"type": "Expression"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "ls_azure_databricks",
-								"type": "LinkedServiceReference"
-							}
-						}
-					]
 				}
 			},
 			{
@@ -198,7 +75,7 @@
 							"type": "Expression"
 						},
 						"logMessage": {
-							"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.source_file_or_table_name,'to bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
+							"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.bronze_tbl,'to silver table',pipeline().parameters.getmetadata_values.silver_tbl)",
 							"type": "Expression"
 						},
 						"logTimeStamp": {
@@ -210,7 +87,7 @@
 							"type": "Expression"
 						},
 						"status": {
-							"value": "@concat(activity('landing tobronze').output.error.message)",
+							"value": "@concat(activity('bronze to silver').output.error.message)",
 							"type": "Expression"
 						},
 						"triggerType": {
