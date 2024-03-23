@@ -526,7 +526,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
-									"referenceName": "mysqllandingrtobron",
+									"referenceName": "bronzetosilveringestion",
 									"type": "PipelineReference"
 								},
 								"waitOnCompletion": true,
