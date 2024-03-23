@@ -15,18 +15,18 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/bronze to silver ingestion",
+					"notebookPath": "/Users/sfathima@confederationcollege.ca/databricks_notebook/mysql_bronze_ingestion",
 					"baseParameters": {
 						"LoadID": {
 							"value": "@pipeline().RunId",
 							"type": "Expression"
 						},
 						"bronze_schema": {
-							"value": "@pipeline().parameters.getmetadata_values.brone_schema",
+							"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
 							"type": "Expression"
 						},
 						"bronze_table": {
-							"value": "@pipeline().parameters.getmetadata_values.bronze_table",
+							"value": "@pipeline().parameters.getmetadata_values.bronze_tbl",
 							"type": "Expression"
 						},
 						" env": {
@@ -34,11 +34,11 @@
 							"type": "Expression"
 						},
 						"source_file_name": {
-							"value": "@pipeline().parameters.getmetadata_values.source_file_name",
+							"value": "@pipeline().parameters.getmetadata_values.source_file_or_table_name",
 							"type": "Expression"
 						},
 						"storage_account_name": {
-							"value": "@pipeline().parameters.getmetadata_values.storage_account_name",
+							"value": "@pipeline().parameters.getmetadata_values.storage_account",
 							"type": "Expression"
 						}
 					}
@@ -62,7 +62,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[2])",
+						"value": "@equals(activity('landing tobronze').output.runoutput[0], activity('landing tobronze').output.runoutput[1])",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
@@ -142,7 +142,7 @@
 										"type": "Expression"
 									},
 									"logMessage": {
-										"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',activity('landing tobronze').output.bronze_tbl)",
+										"value": "@concat('INSERTED',activity('landing tobronze').output.runOutput[1],'records in bronze layer table',pipeline().parameters.getmetadata_values.bronze_tbl)",
 										"type": "Expression"
 									},
 									"logTimeStamp": {
@@ -172,7 +172,7 @@
 				}
 			},
 			{
-				"name": "copy failure  for bronze  layer ingestion",
+				"name": "failure  for bronze  layer ingestion",
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
@@ -214,7 +214,7 @@
 							"type": "Expression"
 						},
 						"status": {
-							"value": "@concat('error:',activity('landing tobronze').output.error.message)",
+							"value": "@concat(activity('landing tobronze').output.error.message)",
 							"type": "Expression"
 						},
 						"triggerType": {
