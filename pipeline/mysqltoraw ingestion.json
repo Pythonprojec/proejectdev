@@ -398,14 +398,7 @@
 						{
 							"name": "archive_sucess_log",
 							"type": "DatabricksNotebook",
-							"dependsOn": [
-								{
-									"activity": "archive source ",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -455,14 +448,7 @@
 						{
 							"name": "archive failure",
 							"type": "DatabricksNotebook",
-							"dependsOn": [
-								{
-									"activity": "archive source ",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -507,6 +493,54 @@
 							"linkedServiceName": {
 								"referenceName": "ls_azure_databricks",
 								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "landing to broze",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute raw to bronze",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "mysqllandingrtobron",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"getmetadata_values": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "landing to broze",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"waitOnCompletion": true
 							}
 						}
 					]

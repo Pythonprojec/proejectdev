@@ -1,9 +1,9 @@
 {
-	"name": "bronzetosilveringestion",
+	"name": "silver to gold",
 	"properties": {
 		"activities": [
 			{
-				"name": "bronze to silver",
+				"name": "silver to gold ingestion",
 				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
@@ -21,20 +21,24 @@
 							"value": "@pipeline()?.TriggeredByPipelineRunId",
 							"type": "Expression"
 						},
-						"bronze_schema": {
-							"value": "@pipeline().parameters.getmetadata_values.bronze_schema",
+						"gold_schema": {
+							"value": "@pipeline().parameters.getmetadata_values.gold_schema",
 							"type": "Expression"
 						},
-						"bronze_table": {
-							"value": "@pipeline().parameters.getmetadata_values.bronze_tbl",
+						"gold_table": {
+							"value": "@pipeline().parameters.getmetadata_values.gold_tbl",
 							"type": "Expression"
 						},
 						"silver_schema": {
-							"value": "@pipeline().parameters.getmetadata_values.siler_schema",
+							"value": "@pipeline().parameters.getmetadata_values.silver_schema",
 							"type": "Expression"
 						},
 						"silver_table": {
-							"value": "@pipeline().parameters.getmetadata_values.silver_table",
+							"value": "@pipeline().parameters.getmetadata_values.silver_tbl",
+							"type": "Expression"
+						},
+						"source": {
+							"value": "@pipeline().parameters.getmetadata_values.source_ref_id",
 							"type": "Expression"
 						}
 					}
@@ -49,7 +53,7 @@
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
-						"activity": "bronze to silver",
+						"activity": "silver to gold ingestion",
 						"dependencyConditions": [
 							"Failed"
 						]
@@ -75,7 +79,7 @@
 							"type": "Expression"
 						},
 						"logMessage": {
-							"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.bronze_tbl,'to silver table',pipeline().parameters.getmetadata_values.silver_tbl)",
+							"value": "@concat('failed to ingest source file',pipeline().parameters.getmetadata_values.bronze_tbl,'to gold table',pipeline().parameters.getmetadata_values.gold_tbl)",
 							"type": "Expression"
 						},
 						"logTimeStamp": {
@@ -87,7 +91,7 @@
 							"type": "Expression"
 						},
 						"status": {
-							"value": "@concat(activity('bronze to silver').output.error.message)",
+							"value": "@concat(activity('silver to gold ingestion').output.error.message)",
 							"type": "Expression"
 						},
 						"triggerType": {
@@ -102,11 +106,11 @@
 				}
 			},
 			{
-				"name": "sucess silver layer ingestion",
+				"name": "sucess gold layer ingestion",
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
-						"activity": "bronze to silver",
+						"activity": "silver to gold ingestion",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -132,7 +136,7 @@
 							"type": "Expression"
 						},
 						"logMessage": {
-							"value": "@concat(' inserted',activity('bronze to silver').output.runOutput[1],activity('bronze to silver').output.runOutput[0],'deupicated removed''in the silver  layer table ',pipeline().parameters.getmetadata_values.silver_tbl)",
+							"value": "@concat(' inserted',activity('silver to gold ingestion').output.runOutput[0], 'into gold layer',pipeline().parameters.getmetadata_values.gold_tbl)",
 							"type": "Expression"
 						},
 						"logTimeStamp": {
