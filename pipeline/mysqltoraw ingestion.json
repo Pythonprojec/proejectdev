@@ -525,7 +525,7 @@
 							}
 						},
 						{
-							"name": "Execute Pipeline1",
+							"name": "trigger silver to gold",
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
@@ -540,7 +540,17 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"waitOnCompletion": true
+								"pipeline": {
+									"referenceName": "silver to gold",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"getmetadata_values": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
 							}
 						}
 					]
