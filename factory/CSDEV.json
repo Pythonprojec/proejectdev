@@ -1,0 +1,9 @@
+{
+	"name": "CSDEV",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "6104d3ed-245a-4289-87ff-a325a38ebeb5",
+		"tenantId": "b6417cd0-1f73-4471-9a39-20953822a34a"
+	}
+}
